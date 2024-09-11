@@ -111,6 +111,12 @@ class RHQueueParser(object):
             help="Define the number of GPUs pr task. Default is all available GPUs if you do not specify")
         
         parser_queue.add_argument(
+            "--memory",
+            type=int,
+            default=125,
+            help="Define the amount of memory (in GB) pr task. Each server has 500 GB.")
+        
+        parser_queue.add_argument(
             "--cpus",
             type=int,
             default=None,

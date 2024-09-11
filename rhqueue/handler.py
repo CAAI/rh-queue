@@ -63,7 +63,6 @@ class RHQueueHander:
             self.processor.add_scriptline("chmod +x {}".format(os.path.abspath(args.script_file)), -2)
         
         # GPUs
-        num_gpus = None
         if args.servers is not None:
             
             servers = args.servers.as_list()
@@ -85,14 +84,18 @@ class RHQueueHander:
                     exit(1)
                 self.processor.add_sbatchline("--gpus", f"{args.gpus}")
                 cpus = args.cpus
+                num_gpus = args.gpus
         else:
             raise ValueError('Server needs to be specified')
-        if num_gpus is None:
-            num_tasks = 1
-        else:
-            num_tasks = num_gpus
-        self.processor.add_sbatchline("--ntasks-per-node", f"{num_tasks}")
+
+        self.processor.add_sbatchline("--ntasks-per-node", f"{num_gpus}") # Number of tasks and GPUs should be the same
         self.processor.add_sbatchline("--cpus-per-task", f"{cpus}")
+        
+        # Memory
+        if args.memory * num_gpus > 500:
+            print(f"You allocated more memory ({args.memory*num_gpus} GB) that there is on the system (500 GB)")
+            exit(1)
+        self.processor.add_sbatchline("--mem-per-gpu", f"{args.memory}")
         
         self.processor.add_sbatchline("-o", args.output_file)
         self.processor.add_sbatchline(
